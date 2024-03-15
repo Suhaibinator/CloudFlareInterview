@@ -55,3 +55,35 @@ Alternatively, you can use `curl` requests to retrieve the same information. Her
 
 ```bash
 curl -G --data-urlencode 'query=sum(requests_total{path="A000006"})' http://localhost:9090/api/v1/query
+```
+
+## API Usage
+
+This API provides three endpoints:
+
+1. `POST /api/new`: This endpoint is used to create a new short URL. The request body should be a JSON object with the following properties:
+
+    - `full_url`: The long URL that you want to shorten.
+    - `expires_at`: The expiration date for the short URL in RFC3339 format (optional).
+
+    Example usage:
+
+    ```bash
+    curl -X POST -H "Content-Type: application/json" -d '{"full_url":"https://example.com", "expires_at":"2022-12-31T23:59:59Z"}' http://localhost:8080/api/new
+    ```
+
+2.  `DELETE /api/delete/{shorturl}`: This endpoint is used to delete a short URL. Replace {shorturl} with the short URL that you want to delete.
+
+    Example usage:
+
+    ```bash
+    curl -X DELETE http://localhost:8080/api/delete/{shorturl}
+    ```
+
+3.  `GET /{shorturl}`: This endpoint is used to redirect a short URL to its corresponding long URL. Replace {shorturl} with the short URL that you want to redirect.
+
+    Example usage:
+
+    ```bash
+    curl -X GET http://localhost:8080/{shorturl}
+    ```
