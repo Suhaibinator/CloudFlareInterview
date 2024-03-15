@@ -24,7 +24,7 @@ func (p *PostgresConnection) Connect(DBConfig DBConfig) error {
 		log.Printf("DBType is not Postgres")
 		return nil
 	}
-	connStr := fmt.Sprintf("host=%s port=%v user=%s password=%s dbname=%s sslmode=disable",
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		DBConfig.Host, DBConfig.Port, DBConfig.Username, DBConfig.Password, DBConfig.DBName)
 	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -69,6 +69,14 @@ func (p *PostgresConnection) GetFullUrl(url string) (string, *time.Time, error) 
 		return "", nil, err
 	}
 	return fullUrl, expiresAt, nil
+}
+
+func (p *PostgresConnection) DeleteShortUrl(url string) error {
+	_, err := p.conn.Exec("DELETE FROM short_urls WHERE url = $1", url)
+	if err != nil {
+		log.Printf("Failed to delete short url: %v", err)
+	}
+	return err
 }
 
 func (p *PostgresConnection) Close() {

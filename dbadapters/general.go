@@ -12,10 +12,20 @@ const (
 	SQLite
 )
 
+func (dbType DBType) String() string {
+	switch dbType {
+	case Postgres:
+		return "Postgres"
+	case SQLite:
+		return "SQLite"
+	}
+	return "Unknown"
+}
+
 type DBConfig struct {
 	DBType   DBType
 	Host     string
-	Port     int
+	Port     string
 	Username string
 	Password string
 	DBName   string
@@ -27,6 +37,7 @@ type DBAdapter interface {
 	CreateTablesAndStatements() error
 	InsertNewShortUrl(url, fullUrl string, expiresAt *time.Time) error
 	GetFullUrl(url string) (string, *time.Time, error)
+	DeleteShortUrl(url string) error
 	Close()
 	Cleanup()
 	printAllTableContents()

@@ -77,6 +77,16 @@ func (s *SQLiteConnection) GetFullUrl(url string) (string, *time.Time, error) {
 	return fullUrl, expiresAt, nil
 }
 
+func (s *SQLiteConnection) DeleteShortUrl(url string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	_, err := s.conn.Exec("DELETE FROM short_urls WHERE url = ?", url)
+	if err != nil {
+		log.Printf("Failed to delete short url: %v", err)
+	}
+	return err
+}
+
 func (s *SQLiteConnection) Close() {
 	s.conn.Close()
 }

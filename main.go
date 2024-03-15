@@ -1,8 +1,13 @@
 package main
 
 import (
+	"ci/api"
+	"ci/application"
 	"ci/config"
 	db "ci/dbadapters"
+	"net/http"
+	"os"
+	"os/signal"
 )
 
 func main() {
@@ -29,12 +34,16 @@ func main() {
 		panic(err)
 	}
 
-	pg.InsertNewShortUrl("test", "http://www.google.com", nil)
+	app := application.NewApp(pg)
+	r := api.SetupRoutes(app)
 
-	result, expires_at, err := pg.GetFullUrl("test")
+	sysChannel := make(chan os.Signal, 1)
+	signal.Notify(sysChannel, os.Interrupt)
 
-	if err != nil {
-		panic(err)
-	}
-	println(result, expires_at)
+	go func() {
+		http.ListenAndServe(":"+config.Configuration.App.Port, r)
+	}()
+
+	<-sysChannel
+
 }

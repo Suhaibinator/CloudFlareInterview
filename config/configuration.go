@@ -10,12 +10,12 @@ import (
 
 type Config struct {
 	App struct {
-		Port int `yaml:"port"`
+		Port string `yaml:"port"`
 	} `yaml:"app"`
 	Database struct {
 		SqlitePath       string `yaml:"sqlite_path"`
 		PostgresHost     string `yaml:"postgres_host"`
-		PostgresPort     int    `yaml:"postgrest_port"`
+		PostgresPort     string `yaml:"postgrest_port"`
 		PostgresUser     string `yaml:"postgres_user"`
 		PostgresPassword string `yaml:"postgres_password"`
 		PostgresDBName   string `yaml:"postgres_db_name"`
