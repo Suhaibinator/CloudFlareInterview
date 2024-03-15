@@ -42,13 +42,14 @@ func (p *PostgresConnection) CreateTablesAndStatements(workerId string) error {
 		return err
 	}
 
-	_, err = p.conn.Exec(`
-    CREATE TABLE IF NOT EXISTS last_count (worker_id TEXT, count INT);
-    INSERT INTO last_count (worker_id, count)
-    SELECT ?, 0 WHERE NOT EXISTS (SELECT 1 FROM last_count WHERE worker_id = ?);`, workerId, workerId)
+	_, err = p.conn.Exec(`CREATE TABLE IF NOT EXISTS last_count (worker_id TEXT, count INT);`)
 	if err != nil {
 		log.Printf("Failed to create counter table: %v", err)
-		return err
+	}
+
+	_, err = p.conn.Exec(`INSERT INTO last_count (worker_id, count) SELECT $1, 0 WHERE NOT EXISTS (SELECT 1 FROM last_count WHERE worker_id = $1);`, workerId)
+	if err != nil {
+		log.Printf("Failed to insert into counter table: %v", err)
 	}
 
 	PreparedStatement, err := p.conn.Prepare("INSERT INTO short_urls (url, full_url, expires_at) VALUES ($1, $2, $3)")

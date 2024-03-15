@@ -1,7 +1,7 @@
 app:
   port: 8080
 database:
-  type: sqlite # Replace with postgres
+  type: postgres # Can be sqlite or postgres
   sqlite_path: sqlite_short_urls.db 
   postgres_host: 127.0.0.1
   postgrest_port: 5432
