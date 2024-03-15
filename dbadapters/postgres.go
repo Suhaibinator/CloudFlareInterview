@@ -110,10 +110,6 @@ func (p *PostgresConnection) Close() {
 	p.conn.Close()
 }
 
-func (p *PostgresConnection) Cleanup() {
-	p.conn.Exec("DROP TABLE short_urls")
-}
-
 func (p *PostgresConnection) printAllTableContents() {
 	rows, err := p.conn.Query("SELECT * FROM short_urls")
 	if err != nil {

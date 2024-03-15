@@ -121,12 +121,6 @@ func (s *SQLiteConnection) Close() {
 	s.conn.Close()
 }
 
-func (s *SQLiteConnection) Cleanup() {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-	s.conn.Exec("DROP TABLE short_urls")
-}
-
 func (s *SQLiteConnection) printAllTableContents() {
 	s.mux.RLock()
 	defer s.mux.RUnlock()

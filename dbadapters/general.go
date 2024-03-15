@@ -42,7 +42,6 @@ type DBAdapter interface {
 	GetCounter(string) (int, error)
 	UpdateCounter(string, int) error
 	Close()
-	Cleanup()
 	printAllTableContents()
 }
 

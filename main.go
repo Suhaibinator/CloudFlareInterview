@@ -5,6 +5,7 @@ import (
 	"ci/application"
 	"ci/config"
 	db "ci/dbadapters"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -43,7 +44,7 @@ func main() {
 	go func() {
 		http.ListenAndServe(":"+config.Configuration.App.Port, r)
 	}()
-
+	log.Println("Server started on port " + config.Configuration.App.Port)
 	<-sysChannel
-
+	pg.Close()
 }
