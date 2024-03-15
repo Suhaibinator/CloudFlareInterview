@@ -35,12 +35,12 @@ type DBConfig struct {
 
 type DBAdapter interface {
 	Connect(dbConfig DBConfig) error
-	CreateTablesAndStatements() error
-	InsertNewShortUrl(url, fullUrl string, expiresAt *time.Time) error
-	GetFullUrl(url string) (string, *time.Time, error)
-	DeleteShortUrl(url string) error
-	GetCounter() (int, error)
-	UpdateCounter(int) error
+	CreateTablesAndStatements(string) error
+	InsertNewShortUrl(string, string, *time.Time) error
+	GetFullUrl(string) (string, *time.Time, error)
+	DeleteShortUrl(string) error
+	GetCounter(string) (int, error)
+	UpdateCounter(string, int) error
 	Close()
 	Cleanup()
 	printAllTableContents()
@@ -57,7 +57,7 @@ func ConvertDBType(dbType string) DBType {
 	return -1
 }
 
-func NewDBAdapter(dbType DBType) DBAdapter {
+func NewDBAdapter(dbType DBType, workerId string) DBAdapter {
 	switch dbType {
 	case Postgres:
 		return newPostgresConnection()

@@ -35,21 +35,22 @@ func (p *PostgresConnection) Connect(DBConfig DBConfig) error {
 	return nil
 }
 
-func (p *PostgresConnection) CreateTablesAndStatements() error {
+func (p *PostgresConnection) CreateTablesAndStatements(workerId string) error {
 	_, err := p.conn.Exec("CREATE TABLE IF NOT EXISTS short_urls (url VARCHAR(255) PRIMARY KEY, full_url VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, expires_at TIMESTAMP)")
 	if err != nil {
 		log.Printf("Failed to create table: %v", err)
 		return err
 	}
+
 	_, err = p.conn.Exec(`
-		CREATE TABLE IF NOT EXISTS last_count (count INT);
-		INSERT INTO last_count (count)
-		SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM last_count);
-	`)
+    CREATE TABLE IF NOT EXISTS last_count (worker_id TEXT, count INT);
+    INSERT INTO last_count (worker_id, count)
+    SELECT ?, 0 WHERE NOT EXISTS (SELECT 1 FROM last_count WHERE worker_id = ?);`, workerId, workerId)
 	if err != nil {
 		log.Printf("Failed to create counter table: %v", err)
 		return err
 	}
+
 	PreparedStatement, err := p.conn.Prepare("INSERT INTO short_urls (url, full_url, expires_at) VALUES ($1, $2, $3)")
 	if err != nil {
 		log.Printf("Failed to prepare statement: %v", err)
@@ -88,17 +89,17 @@ func (p *PostgresConnection) DeleteShortUrl(url string) error {
 	return err
 }
 
-func (p *PostgresConnection) UpdateCounter(newCount int) error {
-	_, err := p.conn.Exec("UPDATE last_count SET count = $1", newCount)
+func (p *PostgresConnection) UpdateCounter(workerID string, newCount int) error {
+	_, err := p.conn.Exec("UPDATE last_count SET count = $1 WHERE worker_id = $2", newCount, workerID)
 	if err != nil {
 		log.Printf("Failed to update counter: %v", err)
 	}
 	return err
 }
 
-func (p *PostgresConnection) GetCounter() (int, error) {
+func (p *PostgresConnection) GetCounter(workerID string) (int, error) {
 	var count int
-	err := p.conn.QueryRow("SELECT count FROM last_count").Scan(&count)
+	err := p.conn.QueryRow("SELECT count FROM last_count WHERE worker_id = $1", workerID).Scan(&count)
 	if err != nil {
 		log.Printf("Failed to get counter: %v", err)
 	}

@@ -36,7 +36,7 @@ func (s *SQLiteConnection) Connect(DBConfig DBConfig) error {
 	return nil
 }
 
-func (s *SQLiteConnection) CreateTablesAndStatements() error {
+func (s *SQLiteConnection) CreateTablesAndStatements(workerId string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	_, err := s.conn.Exec("CREATE TABLE IF NOT EXISTS short_urls (url TEXT PRIMARY KEY, full_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME)")
@@ -45,10 +45,10 @@ func (s *SQLiteConnection) CreateTablesAndStatements() error {
 		return err
 	}
 	_, err = s.conn.Exec(`
-        CREATE TABLE IF NOT EXISTS last_count (count INT);
-        INSERT INTO last_count (count)
-        SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM last_count);
-    `)
+		CREATE TABLE IF NOT EXISTS last_count (worker_id TEXT, count INT);
+		INSERT INTO last_count (worker_id, count)
+		SELECT ?, 0 WHERE NOT EXISTS (SELECT 1 FROM last_count WHERE worker_id = ?);
+	`, workerId, workerId)
 	if err != nil {
 		log.Printf("Failed to create counter table: %v", err)
 		return err
@@ -96,21 +96,21 @@ func (s *SQLiteConnection) DeleteShortUrl(url string) error {
 	return err
 }
 
-func (s *SQLiteConnection) UpdateCounter(newCount int) error {
+func (s *SQLiteConnection) UpdateCounter(workerID string, newCount int) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	_, err := s.conn.Exec("UPDATE last_count SET count = $1", newCount)
+	_, err := s.conn.Exec("UPDATE last_count SET count = ? WHERE worker_id = ?", newCount, workerID)
 	if err != nil {
 		log.Printf("Failed to update counter: %v", err)
 	}
 	return err
 }
 
-func (s *SQLiteConnection) GetCounter() (int, error) {
+func (s *SQLiteConnection) GetCounter(workerID string) (int, error) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 	var count int
-	err := s.conn.QueryRow("SELECT count FROM last_count").Scan(&count)
+	err := s.conn.QueryRow("SELECT count FROM last_count WHERE worker_id = ?", workerID).Scan(&count)
 	if err != nil {
 		log.Printf("Failed to get counter: %v", err)
 	}

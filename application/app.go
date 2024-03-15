@@ -20,7 +20,7 @@ type App struct {
 }
 
 func NewApp(dbAdapter db.DBAdapter, workerId string) *App {
-	counter, err := dbAdapter.GetCounter()
+	counter, err := dbAdapter.GetCounter(workerId)
 	if err != nil {
 		counter = 0
 		log.Printf("Failed to get counter: %v, starting over at count 0", err)
@@ -78,7 +78,7 @@ func (app *App) generateShortUrl() string {
 	count := app.Counter
 	app.Counter++
 	go func() {
-		err := app.DBAdapter.UpdateCounter(app.Counter)
+		err := app.DBAdapter.UpdateCounter(app.WorkerId, app.Counter)
 		if err != nil {
 			log.Printf("Failed to update counter: %v", err)
 		}

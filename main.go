@@ -22,14 +22,14 @@ func main() {
 		FilePath: config.Configuration.Database.SqlitePath,
 	}
 
-	pg := db.NewDBAdapter(dbConfig.DBType)
+	pg := db.NewDBAdapter(dbConfig.DBType, config.Configuration.Worker.Identifier)
 	err := pg.Connect(dbConfig)
 	if err != nil {
 		panic(err)
 	}
 	defer pg.Close()
 
-	err = pg.CreateTablesAndStatements()
+	err = pg.CreateTablesAndStatements(config.Configuration.Worker.Identifier)
 	if err != nil {
 		panic(err)
 	}
