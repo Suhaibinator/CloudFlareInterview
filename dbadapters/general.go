@@ -2,6 +2,7 @@ package dpadapters
 
 import (
 	"log"
+	"strings"
 	"time"
 )
 
@@ -43,6 +44,17 @@ type DBAdapter interface {
 	Close()
 	Cleanup()
 	printAllTableContents()
+}
+
+func ConvertDBType(dbType string) DBType {
+	switch strings.ToLower(dbType) {
+	case "postgres":
+		return Postgres
+	case "sqlite":
+		return SQLite
+	}
+	log.Printf("DBType is not supported")
+	return -1
 }
 
 func NewDBAdapter(dbType DBType) DBAdapter {

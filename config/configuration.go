@@ -13,6 +13,7 @@ type Config struct {
 		Port string `yaml:"port"`
 	} `yaml:"app"`
 	Database struct {
+		Type             string `yaml:"type"`
 		SqlitePath       string `yaml:"sqlite_path"`
 		PostgresHost     string `yaml:"postgres_host"`
 		PostgresPort     string `yaml:"postgrest_port"`

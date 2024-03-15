@@ -13,7 +13,7 @@ import (
 func main() {
 
 	dbConfig := db.DBConfig{
-		DBType:   db.SQLite,
+		DBType:   db.ConvertDBType(config.Configuration.Database.Type),
 		Host:     config.Configuration.Database.PostgresHost,
 		Port:     config.Configuration.Database.PostgresPort,
 		Username: config.Configuration.Database.PostgresUser,
