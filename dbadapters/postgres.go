@@ -14,14 +14,18 @@ type PostgresConnection struct {
 	insertNewShortUrl *sql.Stmt
 }
 
-func NewPostgresConnection() *PostgresConnection {
+func newPostgresConnection() *PostgresConnection {
 	return &PostgresConnection{}
 }
 
-func (p *PostgresConnection) Connect(host string, port int, username, password, dbName string) error {
+func (p *PostgresConnection) Connect(DBConfig DBConfig) error {
 
+	if DBConfig.DBType != Postgres {
+		log.Printf("DBType is not Postgres")
+		return nil
+	}
 	connStr := fmt.Sprintf("host=%s port=%v user=%s password=%s dbname=%s sslmode=disable",
-		host, port, username, password, dbName)
+		DBConfig.Host, DBConfig.Port, DBConfig.Username, DBConfig.Password, DBConfig.DBName)
 	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Printf("Failed to connect to postgres: %v", err)
@@ -75,7 +79,7 @@ func (p *PostgresConnection) Cleanup() {
 	p.conn.Exec("DROP TABLE short_urls")
 }
 
-func (p *PostgresConnection) PrintAllTableContents() {
+func (p *PostgresConnection) printAllTableContents() {
 	rows, err := p.conn.Query("SELECT * FROM short_urls")
 	if err != nil {
 		log.Printf("Failed to print all table contents: %v", err)
