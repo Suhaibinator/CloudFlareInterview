@@ -12,3 +12,17 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./prometheus_config:/etc/prometheus
+      - ./prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    
+    

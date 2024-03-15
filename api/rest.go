@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type UrlShortenRequest struct {
@@ -20,6 +21,7 @@ func SetupRoutes(app *application.App) *mux.Router {
 
 	r.HandleFunc("/api/new", handleNewShortUrl(app)).Methods("POST")
 	r.HandleFunc("/api/delete/{shorturl}", handleDeleteShortUrl(app)).Methods("Delete")
+	r.Handle("/api/metrics", promhttp.Handler()).Methods("GET")
 	r.PathPrefix("/").HandlerFunc(handleOtherPaths(app))
 	return r
 }

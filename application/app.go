@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 type App struct {
-	DBAdapter db.DBAdapter
-	Counter   int
-	WorkerId  string
+	DBAdapter       db.DBAdapter
+	Counter         int
+	WorkerId        string
+	requestsCounter *prometheus.CounterVec
 }
 
 func NewApp(dbAdapter db.DBAdapter, workerId string) *App {
@@ -22,10 +25,18 @@ func NewApp(dbAdapter db.DBAdapter, workerId string) *App {
 		counter = 0
 		log.Printf("Failed to get counter: %v, starting over at count 0", err)
 	}
+	requestsCounter := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "requests_total",
+			Help: "Total number of requests",
+		}, []string{"path"},
+	)
+	prometheus.MustRegister(requestsCounter)
 	return &App{
-		DBAdapter: dbAdapter,
-		Counter:   counter,
-		WorkerId:  workerId,
+		DBAdapter:       dbAdapter,
+		Counter:         counter,
+		WorkerId:        workerId,
+		requestsCounter: requestsCounter,
 	}
 }
 
@@ -39,10 +50,11 @@ func (app *App) GetFullUrl(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	app.requestsCounter.WithLabelValues(url).Inc()
+
 	if expiryDate != nil && expiryDate.Before(time.Now()) {
 		return "", errors.New("url has expired")
 	}
-
 	return fullUrl, nil
 }
 
