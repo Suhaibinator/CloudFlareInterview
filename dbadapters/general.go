@@ -38,6 +38,8 @@ type DBAdapter interface {
 	InsertNewShortUrl(url, fullUrl string, expiresAt *time.Time) error
 	GetFullUrl(url string) (string, *time.Time, error)
 	DeleteShortUrl(url string) error
+	GetCounter() (int, error)
+	UpdateCounter(int) error
 	Close()
 	Cleanup()
 	printAllTableContents()

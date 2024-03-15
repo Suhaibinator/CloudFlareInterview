@@ -41,6 +41,15 @@ func (p *PostgresConnection) CreateTablesAndStatements() error {
 		log.Printf("Failed to create table: %v", err)
 		return err
 	}
+	_, err = p.conn.Exec(`
+		CREATE TABLE IF NOT EXISTS last_count (count INT);
+		INSERT INTO last_count (count)
+		SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM last_count);
+	`)
+	if err != nil {
+		log.Printf("Failed to create counter table: %v", err)
+		return err
+	}
 	PreparedStatement, err := p.conn.Prepare("INSERT INTO short_urls (url, full_url, expires_at) VALUES ($1, $2, $3)")
 	if err != nil {
 		log.Printf("Failed to prepare statement: %v", err)
@@ -77,6 +86,23 @@ func (p *PostgresConnection) DeleteShortUrl(url string) error {
 		log.Printf("Failed to delete short url: %v", err)
 	}
 	return err
+}
+
+func (p *PostgresConnection) UpdateCounter(newCount int) error {
+	_, err := p.conn.Exec("UPDATE last_count SET count = $1", newCount)
+	if err != nil {
+		log.Printf("Failed to update counter: %v", err)
+	}
+	return err
+}
+
+func (p *PostgresConnection) GetCounter() (int, error) {
+	var count int
+	err := p.conn.QueryRow("SELECT count FROM last_count").Scan(&count)
+	if err != nil {
+		log.Printf("Failed to get counter: %v", err)
+	}
+	return count, err
 }
 
 func (p *PostgresConnection) Close() {

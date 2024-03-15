@@ -18,8 +18,8 @@ type UrlShortenRequest struct {
 func SetupRoutes(app *application.App) *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/api/new_short_url", handleNewShortUrl(app)).Methods("POST")
-	r.HandleFunc("/{shorturl}", handleDeleteShortUrl(app)).Methods("Delete")
+	r.HandleFunc("/api/new", handleNewShortUrl(app)).Methods("POST")
+	r.HandleFunc("/api/delete/{shorturl}", handleDeleteShortUrl(app)).Methods("Delete")
 	r.PathPrefix("/").HandlerFunc(handleOtherPaths(app))
 	return r
 }
@@ -61,7 +61,8 @@ func handleNewShortUrl(app *application.App) func(w http.ResponseWriter, r *http
 
 func handleDeleteShortUrl(app *application.App) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := app.DeleteShortUrl(r.URL.Path)
+		vars := mux.Vars(r)
+		err := app.DeleteShortUrl(vars["shorturl"])
 		if err != nil {
 			http.Error(w, "Failed to delete short url", http.StatusInternalServerError)
 			return

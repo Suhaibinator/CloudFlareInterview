@@ -34,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	app := application.NewApp(pg)
+	app := application.NewApp(pg, config.Configuration.Worker.Identifier)
 	r := api.SetupRoutes(app)
 
 	sysChannel := make(chan os.Signal, 1)

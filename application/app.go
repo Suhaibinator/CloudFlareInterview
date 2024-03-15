@@ -3,17 +3,29 @@ package application
 import (
 	db "ci/dbadapters"
 	"errors"
+	"fmt"
+	"log"
 	"time"
 )
 
+const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
 type App struct {
 	DBAdapter db.DBAdapter
+	Counter   int
 	WorkerId  string
 }
 
-func NewApp(dbAdapter db.DBAdapter) *App {
+func NewApp(dbAdapter db.DBAdapter, workerId string) *App {
+	counter, err := dbAdapter.GetCounter()
+	if err != nil {
+		counter = 0
+		log.Printf("Failed to get counter: %v, starting over at count 0", err)
+	}
 	return &App{
 		DBAdapter: dbAdapter,
+		Counter:   counter,
+		WorkerId:  workerId,
 	}
 }
 
@@ -38,6 +50,28 @@ func (app *App) DeleteShortUrl(url string) error {
 	return app.DBAdapter.DeleteShortUrl(url)
 }
 
+func base62Encode(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	result := ""
+	for n > 0 {
+		result = string(base62Chars[n%62]) + result
+		n = n / 62
+	}
+	return result
+}
+
 func (app *App) generateShortUrl() string {
-	return app.WorkerId + "shorturl"
+	count := app.Counter
+	app.Counter++
+	go func() {
+		err := app.DBAdapter.UpdateCounter(app.Counter)
+		if err != nil {
+			log.Printf("Failed to update counter: %v", err)
+		}
+	}()
+	shortUrl := base62Encode(count)
+	shortUrl = fmt.Sprintf("%06s", shortUrl)
+	return app.WorkerId + shortUrl
 }
