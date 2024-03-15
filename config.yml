@@ -1,0 +1,11 @@
+app:
+  port: 8080
+database:
+  sqlite_path: sqlite_short_urls.db # Replace with full path to database
+  postgres_host: localhost
+  postgrest_port: 5432
+  postgres_user: user
+  postgres_password: password
+  postgres_db_name: db
+worker:
+  identifier: A
